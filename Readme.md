@@ -17,7 +17,7 @@
 
 3. **Copy the Loadstring**:
    - Visit the [Sentinel Hub GitHub page](https://github.com/Vvoidddd/Sentinel-Hub) to get the latest loadstring for the loader.
-   - On the GitHub page, find the `Loader.lua` file and copy the loadstring:
+   - On the GitHub page, and copy the loadstring:
 
      ```lua
      loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/refs/heads/main/Release/Loader.lua"))()
