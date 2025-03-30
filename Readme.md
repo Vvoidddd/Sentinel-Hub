@@ -1,44 +1,53 @@
 # Sentinel Hub Loader
 
-**Sentinel Hub** is a loader script for Roblox that provides an easy way to access and use various hubs, including the **Universal Hub** and the **Slime Slaying Online RPG (SSO) Hub**. The script is designed to automatically load the appropriate hub for your game, and more hubs will be added as the team grows.
+**Sentinel Hub** is a powerful loader script for Roblox, designed to seamlessly load game-specific hubs, including the **Universal Hub** and **Slime Slaying Online RPG (SSO) Hub**. The script automatically detects the game you're playing and loads the appropriate hub. More hubs will be added as development continues.
 
 ## 🎮 Supported Game
-- **Slime Slaying Online RPG** (Game ID: 15230308693)
-    - This loader will automatically load the **Slime Slaying Online RPG Hub** if you're in the game.
+- **Slime Slaying Online RPG** *(Game ID: 15230308693)*
+    - The loader will automatically load the **Slime Slaying Online RPG Hub** when you join the game.
 
 ## 🛠 How to Use
 
-1. **Open Your Script Executor**:
-   - First, you need to have a Roblox script executor that supports `loadstring()`. Some popular options are [Krnl](https://krnl.place), [Synapse X](https://www.synapse.to), or [ScriptWare](https://www.scriptware.app).
-   
-2. **Attach to Roblox**:
-   - Launch Roblox and enter the game you want to play.
-   - Attach your script executor to the Roblox client. The process of attaching varies based on the executor you're using, but it's usually a simple button click.
+### 1️⃣ Open Your Script Executor
+To use Sentinel Hub, you need a Roblox script executor that supports `loadstring()`. Some popular options include:
+- [Krnl](https://krnl.place)
+- [Synapse X](https://www.synapse.to)
+- [ScriptWare](https://www.scriptware.app)
 
-3. **Copy the Loadstring**:
-   - Visit the [Sentinel Hub GitHub page](https://github.com/Vvoidddd/Sentinel-Hub) to get the latest loadstring for the loader.
-   - On the GitHub page, and copy the loadstring:
+### 2️⃣ Attach the Executor to Roblox
+- Launch Roblox and join a game.
+- Attach your script executor to the Roblox client.
 
-     ```lua
-     loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/refs/heads/main/Release/Loader.lua"))()
-     ```
+### 3️⃣ Copy the Loadstring
+Get the latest loadstring from below!
 
-4. **Execute the Loadstring**:
-   - Paste the copied loadstring into your script executor and execute it.
-   - The loader will detect the game you're in and load the appropriate hub:
-     - If you're in **Slime Slaying Online RPG**, it will load the **SSO Hub**.
-     - For other games, it will load the **Universal Hub**.
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/refs/heads/main/Release/Loader.lua"))()
+```
 
-## 🧑‍🤝‍🧑 Future Hubs
-As the team grows, more game-specific hubs will be created, offering tailored features and functionalities for different Roblox games. Stay tuned for updates!
+### 4️⃣ Execute the Loadstring
+- Paste the copied script into your executor.
+- Execute it.
+- The loader will detect the game you're in and load the correct hub:
+  - If you're in **Slime Slaying Online RPG**, it will load the **SSO Hub**.
+  - For unsupported games, the **Universal Hub** will load.
 
-## ⚠️ Note
-Make sure you're not in a restricted game. If you're in a restricted game, the loader will kick you out with a notification.
+## 🚀 Future Expansions
+As Sentinel Hub grows, more game-specific hubs will be developed, bringing new features and optimizations tailored to different Roblox games.
+
+## ⚠️ Important Notice
+- The loader **will not work** in restricted or blacklisted games.
+- If you attempt to use it in a restricted game, you will be automatically kicked.
 
 ## 💬 Credits
-- **Vvoidddd**: Developer of Sentinel Hub.
-- **Luxware UI Library**: The UI framework powering the clean and interactive interface.
+- **Void (Vvoidddd)** – Lead Developer of Sentinel Hub
+- **Deeeity** – Developer of the **Mercury UI Library** used for the UI framework
+
+## 🤝 Contributors
+- **Void (Vvoidddd)** – Lead Developer and Creator of Sentinel Hub
+- **Deeeity** – Contributor to the Mercury UI Library
 
 ---
 
-Enjoy using **Sentinel Hub** and stay tuned for new game hubs as we continue to expand!
+Stay updated for future releases and new game hubs! 🚀
+
