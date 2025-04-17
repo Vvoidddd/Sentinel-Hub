@@ -1,10 +1,13 @@
 # Sentinel Hub Loader
 
-**Sentinel Hub** is a powerful loader script for Roblox, designed to seamlessly load game-specific hubs, including the **Universal Hub** and **Slime Slaying Online RPG (SSO) Hub**. The script automatically detects the game you're playing and loads the appropriate hub. More hubs will be added as development continues.
+**Sentinel Hub** is a powerful loader script for Roblox, designed to seamlessly load game-specific hubs, including the **Universal Hub**, **Slime Slaying Online RPG (SSO) Hub**, and **Bubble Gum Simulator INFINITY Hub**. The script automatically detects the game you're playing and loads the appropriate hub. More hubs will be added as development continues.
 
-## 🎮 Supported Game
+## 🎮 Supported Games
 - **Slime Slaying Online RPG** *(Game ID: 15230308693)*
     - The loader will automatically load the **Slime Slaying Online RPG Hub** when you join the game.
+
+- **Bubble Gum Simulator INFINITY** *(Game ID: 85896571713843)*
+    - The loader will automatically load the **Bubble Gum Simulator INFINITY Hub** when you join the game.
 
 ## 🛠 How to Use
 
@@ -30,6 +33,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub
 - Execute it.
 - The loader will detect the game you're in and load the correct hub:
   - If you're in **Slime Slaying Online RPG**, it will load the **SSO Hub**.
+  - If you're in **Bubble Gum Simulator INFINITY**, it will load the **BGSI Hub**.
   - For unsupported games, the **Universal Hub** will load.
 
 ## 🚀 Future Expansions
@@ -39,15 +43,17 @@ As Sentinel Hub grows, more game-specific hubs will be developed, bringing new f
 - The loader **will not work** in restricted or blacklisted games.
 - If you attempt to use it in a restricted game, you will be automatically kicked.
 
-## 💬 Credits
-- **Void (Vvoidddd)** – Lead Developer of Sentinel Hub
-- **Deeeity** – Developer of the **Mercury UI Library** used for the UI framework
+## 💻 GitHub Contributors
 
-## 🤝 Contributors
-- **Void (Vvoidddd)** – Lead Developer and Creator of Sentinel Hub
-- **Deeeity** – Contributor to the Mercury UI Library
+These amazing people contributed to **Sentinel Hub**:
 
----
+### [Void (Vvoidddd)](https://github.com/Vvoidddd)
+![Void's Avatar](https://avatars.githubusercontent.com/u/47294895?v=4)  
+Lead Developer and Creator of Sentinel Hub
 
-Stay updated for future releases and new game hubs! 🚀
+### [Deeeity](https://github.com/Deeeity)
+![Deeeity's Avatar](https://avatars.githubusercontent.com/u/62409148?v=4)  
+Contributor to the **Mercury UI Library**
+
+You can find the full list of contributors on [GitHub](https://github.com/Vvoidddd/Sentinel-Hub/graphs/contributors).
 
