@@ -43,17 +43,14 @@ As Sentinel Hub grows, more game-specific hubs will be developed, bringing new f
 - The loader **will not work** in restricted or blacklisted games.
 - If you attempt to use it in a restricted game, you will be automatically kicked.
 
-## 💻 GitHub Contributors
+## 💻 GitHub Collaborators
 
-These amazing people contributed to **Sentinel Hub**:
+The following people have contributed to **Sentinel Hub**:
 
-### [Void (Vvoidddd)](https://github.com/Vvoidddd)
-![Void's Avatar](https://avatars.githubusercontent.com/u/47294895?v=4)  
-Lead Developer and Creator of Sentinel Hub
-
-### [Deeeity](https://github.com/Deeeity)
-![Deeeity's Avatar](https://avatars.githubusercontent.com/u/62409148?v=4)  
-Contributor to the **Mercury UI Library**
+<!-- Contributors List -->
+### Contributors
+<!-- GitHub's Contributors API will show avatars dynamically -->
+![Void (Vvoidddd)](https://avatars.githubusercontent.com/u/16042627?s=40&v=4) **Void (Vvoidddd)** – Lead Developer and Creator of Sentinel Hub  
+![Deeeity](https://avatars.githubusercontent.com/u/62907178?s=40&v=4) **Deeeity** – Contributor to the **Mercury UI Library**
 
 You can find the full list of contributors on [GitHub](https://github.com/Vvoidddd/Sentinel-Hub/graphs/contributors).
-
