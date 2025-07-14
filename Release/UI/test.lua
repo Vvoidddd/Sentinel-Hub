@@ -1,5 +1,5 @@
-local CreateSentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
-local UI = CreateSentinelUI():CreateWindow(Enum.KeyCode.RightShift)
+local SentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
+local UI = SentinelUI.CreateWindow(Enum.KeyCode.RightShift)
 
 local terminal = UI:CreateTab("Terminal")
 terminal:Label("Welcome to Sentinel UI Terminal!")
@@ -8,9 +8,6 @@ terminal:Button("Print Hello", function()
 end)
 terminal:Toggle("Auto Mode", false, function(state)
     print("Auto Mode:", state)
-end)
-terminal:Slider("Speed", 1, 10, 5, function(value)
-    print("Speed set to:", value)
 end)
 
 local settings = UI:CreateTab("Settings")
