@@ -191,69 +191,6 @@ local function CreateSentinelUI()
                 return toggle
             end
 
-            function api:Slider(label, min, max, default, callback)
-                local value = default or min
-
-                local container = Instance.new("Frame")
-                container.Size = UDim2.new(1, -20, 0, 40)
-                container.BackgroundTransparency = 1
-                container.Parent = tabContent
-
-                local labelText = Instance.new("TextLabel")
-                labelText.Size = UDim2.new(1, 0, 0, 18)
-                labelText.BackgroundTransparency = 1
-                labelText.TextColor3 = Theme.Text
-                labelText.Font = Enum.Font.Code
-                labelText.TextSize = 14
-                labelText.TextXAlignment = Enum.TextXAlignment.Left
-                labelText.Text = ("%s: %d"):format(label, value)
-                labelText.Parent = container
-
-                local bar = Instance.new("Frame")
-                bar.Size = UDim2.new(1, 0, 0, 8)
-                bar.Position = UDim2.new(0, 0, 0, 20)
-                bar.BackgroundColor3 = Theme.Section
-                bar.Parent = container
-                Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 6)
-
-                local fill = Instance.new("Frame")
-                fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
-                fill.BackgroundColor3 = Theme.Accent
-                fill.Parent = bar
-                Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 6)
-
-                local dragging = false
-
-                local function updateFill(x)
-                    local ratio = math.clamp((x - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-                    value = math.floor((min + (max - min) * ratio) + 0.5)
-                    fill.Size = UDim2.new(ratio, 0, 1, 0)
-                    labelText.Text = ("%s: %d"):format(label, value)
-                    if callback then callback(value) end
-                end
-
-                bar.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        dragging = true
-                        updateFill(input.Position.X)
-                    end
-                end)
-
-                bar.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        dragging = false
-                    end
-                end)
-
-                bar.InputChanged:Connect(function(input)
-                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                        updateFill(input.Position.X)
-                    end
-                end)
-
-                return container
-            end
-
             tabs[tabName] = api
             return api
         end
@@ -265,7 +202,7 @@ local function CreateSentinelUI()
         return SentinelUI
     end
 
-    return SentinelUI
+    return CreateSentinelUI
 end
 
-return CreateSentinelUI()
+return CreateSentinelUI
