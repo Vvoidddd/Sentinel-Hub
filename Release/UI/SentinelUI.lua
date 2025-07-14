@@ -9,13 +9,25 @@ local Theme = {
     TextLight = Color3.fromRGB(210, 170, 255),
 }
 
+local _currentGui -- tracks the currently opened GUI to auto-close
+
 local function CreateSentinelWindow(toggleKey)
+    -- Close previous UI if exists
+    if _currentGui then
+        pcall(function()
+            _currentGui:Destroy()
+        end)
+        _currentGui = nil
+    end
+
     local playerName = Players.LocalPlayer and Players.LocalPlayer.Name or "Guest"
     local Gui = Instance.new("ScreenGui")
     Gui.Name = "SentinelUI_" .. tostring(math.random(1000, 9999))
     Gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
     Gui.ResetOnSpawn = false
     Gui.Parent = game:GetService("CoreGui")
+
+    _currentGui = Gui
 
     local Main = Instance.new("Frame")
     Main.Size = UDim2.fromOffset(580, 360)
@@ -179,7 +191,12 @@ local function CreateSentinelWindow(toggleKey)
     end
 
     function api:Destroy()
-        Gui:Destroy()
+        if Gui and Gui.Parent then
+            Gui:Destroy()
+        end
+        if _currentGui == Gui then
+            _currentGui = nil
+        end
     end
 
     return api

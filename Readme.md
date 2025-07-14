@@ -1,3 +1,4 @@
+
 # Sentinel Hub Loader
 
 **Sentinel Hub** is a universal multi-hub loader for Roblox. It auto-detects the current game and loads the appropriate hub interface. If the game isn’t specifically supported, it falls back to a feature-rich **Universal Hub UI** with a modular, customizable interface.
@@ -28,7 +29,7 @@
 
    ```lua
    loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/Loader.lua"))()
-   ```
+
 
 4. **Sentinel Hub auto-detects your game** and loads:
 
@@ -48,8 +49,8 @@ The Universal Hub includes a fully modular Lua UI system built from scratch usin
 📥 **How to Load in Your Script**:
 
 ```lua
-local CreateSentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
-local UI = CreateSentinelUI():CreateWindow(Enum.KeyCode.RightShift)
+local SentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
+local UI = SentinelUI.CreateWindow(Enum.KeyCode.RightShift)
 ```
 
 ---
@@ -93,14 +94,14 @@ UI:Destroy()
 ## 🧪 Full Example
 
 ```lua
-local CreateSentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
-local UI = CreateSentinelUI():CreateWindow(Enum.KeyCode.RightShift)
+local SentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
+local UI = SentinelUI.CreateWindow(Enum.KeyCode.RightShift)
 
 local main = UI:CreateTab("Main")
 main:Label("Welcome!")
 main:Button("Print Hello", function() print("Hello") end)
 main:Toggle("Auto Farm", false, function(state) print("AutoFarm:", state) end)
-main:Slider("Speed", 1, 20, 5, function(v) print("Speed:", v) end)
+-- Slider support not implemented in current UI module
 
 local settings = UI:CreateTab("Settings")
 settings:Label("Config")
@@ -119,3 +120,29 @@ settings:Button("Close UI", function() UI:Destroy() end)
 ## 🧠 Credits
 
 * **Void (Vvoidddd)** – Lead Developer of Sentinel Hub and UI System
+
+
+
+---
+
+## test.lua 
+
+```lua
+local SentinelUI = loadstring(game\:HttpGet("[https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))(](https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua%22%29%29%28))
+local UI = SentinelUI.CreateWindow(Enum.KeyCode.RightShift)
+
+local terminal = UI\:CreateTab("Terminal")
+terminal\:Label("Welcome to Sentinel UI Terminal!")
+terminal\:Button("Print Hello", function()
+print("Hello from Sentinel UI!")
+end)
+terminal\:Toggle("Auto Mode", false, function(state)
+print("Auto Mode:", state)
+end)
+
+local settings = UI\:CreateTab("Settings")
+settings\:Label("Settings Panel")
+settings\:Button("Close UI", function()
+UI\:Destroy()
+end)
+
