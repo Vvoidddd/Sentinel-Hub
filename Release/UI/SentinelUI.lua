@@ -9,15 +9,13 @@ local Theme = {
     TextLight = Color3.fromRGB(210, 170, 255),
 }
 
-local SentinelUI = {}
-
-function SentinelUI.CreateWindow(toggleKey)
+local function CreateSentinelWindow(toggleKey)
     local playerName = Players.LocalPlayer and Players.LocalPlayer.Name or "Guest"
     local Gui = Instance.new("ScreenGui")
     Gui.Name = "SentinelUI_" .. tostring(math.random(1000, 9999))
     Gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
     Gui.ResetOnSpawn = false
-    Gui.Parent = game.CoreGui
+    Gui.Parent = game:GetService("CoreGui")
 
     local Main = Instance.new("Frame")
     Main.Size = UDim2.fromOffset(580, 360)
@@ -51,9 +49,7 @@ function SentinelUI.CreateWindow(toggleKey)
     TabPanel.Position = UDim2.new(0, 0, 0, 36)
     TabPanel.BackgroundColor3 = Theme.Section
     TabPanel.Parent = Main
-    local tabLayout = Instance.new("UIListLayout", TabPanel)
-    tabLayout.Padding = UDim.new(0, 4)
-    tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    Instance.new("UIListLayout", TabPanel).Padding = UDim.new(0, 4)
 
     local ContentPanel = Instance.new("Frame")
     ContentPanel.Size = UDim2.new(1, -140, 1, -36)
@@ -97,7 +93,9 @@ function SentinelUI.CreateWindow(toggleKey)
 
         tabButton.MouseButton1Click:Connect(function()
             for _, child in ipairs(ContentPanel:GetChildren()) do
-                if child:IsA("ScrollingFrame") then child.Visible = false end
+                if child:IsA("ScrollingFrame") then
+                    child.Visible = false
+                end
             end
             tabContent.Visible = true
             HeaderLabel.Text = ("Sentinel Hub | Universal | User@%s | *%s*"):format(playerName, tabName)
@@ -187,4 +185,6 @@ function SentinelUI.CreateWindow(toggleKey)
     return api
 end
 
-return SentinelUI
+return {
+    CreateWindow = CreateSentinelWindow
+}
