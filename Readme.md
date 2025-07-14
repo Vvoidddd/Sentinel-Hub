@@ -1,43 +1,121 @@
 # Sentinel Hub Loader
 
-**Sentinel Hub** is a powerful loader script for Roblox, designed to seamlessly load game‑specific hubs, including the **Universal Hub**, **Slime Slaying Online RPG (SSO) Hub**, and **Bubble Gum Simulator INFINITY Hub**. The script automatically detects the game you’re playing and loads the appropriate hub. More hubs will be added as development continues.
+**Sentinel Hub** is a universal multi-hub loader for Roblox. It auto-detects the current game and loads the appropriate hub interface. If the game isn’t specifically supported, it falls back to a feature-rich **Universal Hub UI** with a modular, customizable interface.
+
+---
 
 ## 🎮 Supported Games
-- **Slime Slaying Online RPG** *(Game ID: 15230308693)*  
-  The loader will automatically load the **SSO Hub** when you join this game.
 
-- **Bubble Gum Simulator INFINITY** *(Game ID: 85896571713843)*  
-  The loader will automatically load the **BGSI Hub** when you join this game.
+| Game                              | Place ID         | Hub           |
+| --------------------------------- | ---------------- | ------------- |
+| **Slime Slaying Online RPG**      | `15230308693`    | SSO Hub       |
+| **Bubble Gum Simulator INFINITY** | `85896571713843` | BGSI Hub      |
+| *(All others)*                    | *Any*            | Universal Hub |
 
-## 🛠 How to Use
+---
 
-1. **Open Your Script Executor**  
-   You need a Roblox executor that supports `loadstring()`, such as:
-   - [Krnl](https://krnl.place)
-   - [Synapse X](https://www.synapse.to)
-   - [ScriptWare](https://www.scriptware.app)
+## 🚀 How to Use
 
-2. **Attach to Roblox**  
-   Launch Roblox, join any of the supported games, then attach your executor.
+1. **Use a compatible script executor**:
 
-3. **Copy & Execute**  
+   * [Krnl](https://krnl.place)
+   * [Synapse X](https://www.synapse.to)
+   * [ScriptWare](https://www.scriptware.app)
+
+2. **Join a supported game** and attach your executor.
+
+3. **Run the Loader**:
+
    ```lua
-   loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/refs/heads/main/Release/Loader.lua"))()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/Loader.lua"))()
    ```
 
-4. **Sit Back**  
-   Sentinel Hub will auto‑detect your game and load:
-   - **SSO Hub** for Slime Slaying Online RPG  
-   - **BGSI Hub** for Bubble Gum Simulator INFINITY  
-   - **Universal Hub** for any other game
+4. **Sentinel Hub auto-detects your game** and loads:
 
-## 🚀 Future Expansions
-More game‑specific hubs, new features, and optimizations are in the works—stay tuned!
+   * **SSO Hub** for Slime Slaying Online RPG
+   * **BGSI Hub** for Bubble Gum Simulator INFINITY
+   * **Universal Hub** for all other games
 
-## ⚠️ Important Notice
-- The loader **won’t function** in restricted or blacklisted games.  
-- Attempting to use it there may result in a kick or denial.
+---
 
-## 💬 Credits
-- **Void (Vvoidddd)** – Lead Developer of Sentinel Hub  
-- **Deeeity** – Author of the **Mercury UI Library** used for the interface  
+## 🧰 Universal Hub UI Library
+
+The Universal Hub includes a fully modular Lua UI system built from scratch using Roblox instances (no external dependencies).
+
+📁 **Module Path**:
+[`SentinelUI.lua`](https://github.com/Vvoidddd/Sentinel-Hub/blob/main/Release/UI/SentinelUI.lua)
+
+📥 **How to Load in Your Script**:
+
+```lua
+local CreateSentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
+local UI = CreateSentinelUI():CreateWindow(Enum.KeyCode.RightShift)
+```
+
+---
+
+## 📁 How to Create Tabs & Controls
+
+Once you have `UI`, you can define any number of tabs with controls.
+
+### ✅ Create a Tab
+
+```lua
+local tab = UI:CreateTab("Main")
+```
+
+### 🧩 Add Controls to Tab
+
+```lua
+tab:Label("Welcome to Sentinel UI")
+
+tab:Button("Say Hello", function()
+    print("Hello from Sentinel!")
+end)
+
+tab:Toggle("Enable Feature", false, function(state)
+    print("Toggled:", state)
+end)
+
+tab:Slider("Volume", 0, 100, 50, function(value)
+    print("Volume is now", value)
+end)
+```
+
+### ❌ Close the UI Programmatically
+
+```lua
+UI:Destroy()
+```
+
+---
+
+## 🧪 Full Example
+
+```lua
+local CreateSentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
+local UI = CreateSentinelUI():CreateWindow(Enum.KeyCode.RightShift)
+
+local main = UI:CreateTab("Main")
+main:Label("Welcome!")
+main:Button("Print Hello", function() print("Hello") end)
+main:Toggle("Auto Farm", false, function(state) print("AutoFarm:", state) end)
+main:Slider("Speed", 1, 20, 5, function(v) print("Speed:", v) end)
+
+local settings = UI:CreateTab("Settings")
+settings:Label("Config")
+settings:Button("Close UI", function() UI:Destroy() end)
+```
+
+---
+
+## 🛡 Notices
+
+* The loader **won’t function in protected/blacklisted games**
+* Attempting to use it in restricted environments may result in a kick
+
+---
+
+## 🧠 Credits
+
+* **Void (Vvoidddd)** – Lead Developer of Sentinel Hub and UI System
