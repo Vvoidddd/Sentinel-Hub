@@ -1,10 +1,8 @@
 --============================================================
--- SentinelUI v3 - Top Bar + Smooth Dragging by Void
+-- SentinelUI v4 - Octosniff style + Top Bar + Smooth Dragging
 --============================================================
-
 local SentinelUI = {}
 
--- Services
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -39,18 +37,14 @@ local function makeTopBarDraggable(frame, topBar)
         end
     end)
 
-    -- Smooth follow
     RunService.RenderStepped:Connect(function()
-        local currentPos = frame.Position
-        frame.Position = currentPos:Lerp(targetPosition, 0.15)
+        frame.Position = frame.Position:Lerp(targetPosition, 0.15)
     end)
 end
 
--- Create Window
 function SentinelUI.CreateWindow(toggleKey)
     toggleKey = toggleKey or Enum.KeyCode.RightShift
 
-    -- ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "SentinelUI"
     ScreenGui.Parent = game.CoreGui
@@ -62,23 +56,23 @@ function SentinelUI.CreateWindow(toggleKey)
     Main.Size = UDim2.fromOffset(600, 400)
     Main.Position = UDim2.fromScale(0.5, 0.5)
     Main.AnchorPoint = Vector2.new(0.5, 0.5)
-    Main.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+    Main.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
     Main.BorderSizePixel = 0
     Main.Parent = ScreenGui
     Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
     local Stroke = Instance.new("UIStroke", Main)
-    Stroke.Color = Color3.fromRGB(45, 45, 45)
-    Stroke.Thickness = 1.5
+    Stroke.Color = Color3.fromRGB(50, 50, 50)
+    Stroke.Thickness = 2
 
     -- Top Bar
     local TopBar = Instance.new("Frame", Main)
     TopBar.Size = UDim2.new(1, 0, 0, 40)
     TopBar.Position = UDim2.new(0, 0, 0, 0)
-    TopBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     TopBar.BorderSizePixel = 0
     Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 12)
 
-    -- Title on top bar
+    -- Title
     local Title = Instance.new("TextLabel", TopBar)
     Title.Size = UDim2.new(1, -60, 1, 0)
     Title.Position = UDim2.fromOffset(10, 0)
@@ -89,25 +83,24 @@ function SentinelUI.CreateWindow(toggleKey)
     Title.TextSize = 18
     Title.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Close button
+    -- Close Button
     local CloseButton = Instance.new("TextButton", TopBar)
     CloseButton.Size = UDim2.fromOffset(30, 30)
-    CloseButton.Position = UDim2.new(1, -35, 0.5, -15)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    CloseButton.Position = UDim2.new(1, -40, 0.5, -15)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
     CloseButton.Text = "X"
     CloseButton.Font = Enum.Font.GothamBold
     CloseButton.TextSize = 18
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseButton.BorderSizePixel = 0
     Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
-
     CloseButton.MouseButton1Click:Connect(function()
         ScreenGui:Destroy()
     end)
 
-    -- Bottom left key display
+    -- Bottom-left toggle key
     local KeyLabel = Instance.new("TextLabel", Main)
-    KeyLabel.Size = UDim2.new(0, 150, 0, 20)
+    KeyLabel.Size = UDim2.new(0, 180, 0, 20)
     KeyLabel.Position = UDim2.new(0, 10, 1, -30)
     KeyLabel.BackgroundTransparency = 1
     KeyLabel.Text = "Toggle Key: " .. tostring(toggleKey.Name)
@@ -132,22 +125,19 @@ function SentinelUI.CreateWindow(toggleKey)
     Pages.Position = UDim2.fromOffset(150, 50)
     Pages.BackgroundTransparency = 1
 
-    -- Toggle visibility
+    -- Toggle UI
     UserInputService.InputBegan:Connect(function(input, gpe)
         if not gpe and input.KeyCode == toggleKey then
             Main.Visible = not Main.Visible
         end
     end)
 
-    -- Apply smooth top-bar dragging
+    -- Apply smooth dragging only on top bar
     makeTopBarDraggable(Main, TopBar)
 
     local Window = {}
     local Tabs = {}
 
-    --============================================================
-    -- TAB CREATION
-    --============================================================
     function Window:CreateTab(name)
         local TabButton = Instance.new("TextButton", Sidebar)
         TabButton.Size = UDim2.new(1, -12, 0, 36)
