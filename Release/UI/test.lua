@@ -1,5 +1,5 @@
 --============================================================
--- Sentinel Hub v4 Test
+-- Sentinel Hub v5 Test
 --============================================================
 
 -- Load the UI module
@@ -14,11 +14,11 @@ local Window = SentinelUI.CreateWindow(Enum.KeyCode.RightShift)
 -- MAIN TAB
 --============================================================
 local MainTab = Window:CreateTab("Main")
-MainTab:Label("Sentinel Hub v4 Example")
+MainTab:Label("Sentinel Hub v5 Example")
 
 -- Button example
 MainTab:Button("Print Hello", function()
-    print("Hello from SentinelUI v4!")
+    print("Hello from SentinelUI v5!")
 end)
 
 -- Toggle example
@@ -58,7 +58,7 @@ MiscTab:Button("Destroy UI", function()
     Window:Destroy()
 end)
 
--- Optional extra: demonstration sliders in Misc tab
+-- Extra demo elements
 MiscTab:Slider(1, 10, 5, function(val)
     print("Demo Slider value:", val)
 end)

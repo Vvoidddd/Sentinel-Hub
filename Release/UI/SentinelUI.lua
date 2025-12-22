@@ -1,5 +1,5 @@
 --============================================================
--- SentinelUI v4 - Octosniff style + Top Bar + Smooth Dragging
+-- SentinelUI v5 - Collapsible Top Bar + Smooth Drag Only
 --============================================================
 local SentinelUI = {}
 
@@ -83,7 +83,7 @@ function SentinelUI.CreateWindow(toggleKey)
     Title.TextSize = 18
     Title.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Close Button
+    -- Close / Collapse Button
     local CloseButton = Instance.new("TextButton", TopBar)
     CloseButton.Size = UDim2.fromOffset(30, 30)
     CloseButton.Position = UDim2.new(1, -40, 0.5, -15)
@@ -94,8 +94,23 @@ function SentinelUI.CreateWindow(toggleKey)
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseButton.BorderSizePixel = 0
     Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
+
+    local expanded = true
+    local prevSize = Main.Size
+
     CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
+        if expanded then
+            -- Collapse: keep only top bar visible
+            prevSize = Main.Size
+            Main.Size = UDim2.new(Main.Size.X.Scale, Main.Size.X.Offset, 0, 40)
+            CloseButton.Text = "▢" -- fullscreen icon
+            expanded = false
+        else
+            -- Expand
+            Main.Size = prevSize
+            CloseButton.Text = "X"
+            expanded = true
+        end
     end)
 
     -- Bottom-left toggle key
@@ -125,14 +140,14 @@ function SentinelUI.CreateWindow(toggleKey)
     Pages.Position = UDim2.fromOffset(150, 50)
     Pages.BackgroundTransparency = 1
 
-    -- Toggle UI
+    -- Toggle visibility
     UserInputService.InputBegan:Connect(function(input, gpe)
         if not gpe and input.KeyCode == toggleKey then
             Main.Visible = not Main.Visible
         end
     end)
 
-    -- Apply smooth dragging only on top bar
+    -- Apply smooth top-bar dragging
     makeTopBarDraggable(Main, TopBar)
 
     local Window = {}
