@@ -1,207 +1,226 @@
-local Players = game:GetService("Players")
+--============================================================
+-- SentinelUI v2 - Recode by Void
+--============================================================
+
+local SentinelUI = {}
+
+--============================================================
+-- SERVICES
+--============================================================
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-local Theme = {
-    Background = Color3.fromRGB(10, 10, 10),
-    Accent = Color3.fromRGB(145, 85, 255),
-    Section = Color3.fromRGB(20, 20, 20),
-    Text = Color3.fromRGB(180, 130, 255),
-    TextLight = Color3.fromRGB(210, 170, 255),
-}
+--============================================================
+-- UTILS
+--============================================================
+local function round(n)
+    return math.floor(n + 0.5)
+end
 
-local _currentGui -- tracks the currently opened GUI to auto-close
+local function makeDraggable(frame)
+    local dragging = false
+    local dragOffset
 
-local function CreateSentinelWindow(toggleKey)
-    -- Close previous UI if exists
-    if _currentGui then
-        pcall(function()
-            _currentGui:Destroy()
-        end)
-        _currentGui = nil
-    end
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragOffset = input.Position - frame.AbsolutePosition
+        end
+    end)
 
-    local playerName = Players.LocalPlayer and Players.LocalPlayer.Name or "Guest"
-    local Gui = Instance.new("ScreenGui")
-    Gui.Name = "SentinelUI_" .. tostring(math.random(1000, 9999))
-    Gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    Gui.ResetOnSpawn = false
-    Gui.Parent = game:GetService("CoreGui")
+    frame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
 
-    _currentGui = Gui
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            frame.Position = UDim2.fromOffset(
+                input.Position.X - dragOffset.X,
+                input.Position.Y - dragOffset.Y
+            )
+        end
+    end)
+end
 
-    local Main = Instance.new("Frame")
-    Main.Size = UDim2.fromOffset(580, 360)
-    Main.Position = UDim2.new(0.5, -290, 0.5, -180)
-    Main.BackgroundColor3 = Theme.Background
+--============================================================
+-- WINDOW
+--============================================================
+function SentinelUI.CreateWindow(toggleKey)
+    toggleKey = toggleKey or Enum.KeyCode.RightShift
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "SentinelUI"
+    ScreenGui.Parent = game.CoreGui
+
+    local Main = Instance.new("Frame", ScreenGui)
+    Main.Size = UDim2.fromOffset(600, 400)
+    Main.Position = UDim2.fromScale(0.5, 0.5)
+    Main.AnchorPoint = Vector2.new(0.5, 0.5)
+    Main.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
     Main.BorderSizePixel = 0
-    Main.Active = true
-    Main.Draggable = true
-    Main.Parent = Gui
-    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 8)
 
-    local Header = Instance.new("Frame")
-    Header.Size = UDim2.new(1, 0, 0, 36)
-    Header.BackgroundColor3 = Theme.Section
-    Header.Parent = Main
-    Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
+    makeDraggable(Main)
 
-    local HeaderLabel = Instance.new("TextLabel")
-    HeaderLabel.Size = UDim2.new(1, -20, 1, 0)
-    HeaderLabel.Position = UDim2.fromOffset(10, 0)
-    HeaderLabel.BackgroundTransparency = 1
-    HeaderLabel.TextColor3 = Theme.Text
-    HeaderLabel.Font = Enum.Font.Code
-    HeaderLabel.TextSize = 16
-    HeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
-    HeaderLabel.Text = ("Sentinel Hub | Universal | User@%s | *Loading...*"):format(playerName)
-    HeaderLabel.Parent = Header
+    local Stroke = Instance.new("UIStroke", Main)
+    Stroke.Color = Color3.fromRGB(45, 45, 45)
+    Stroke.Thickness = 1.5
 
-    local TabPanel = Instance.new("Frame")
-    TabPanel.Size = UDim2.new(0, 140, 1, -36)
-    TabPanel.Position = UDim2.new(0, 0, 0, 36)
-    TabPanel.BackgroundColor3 = Theme.Section
-    TabPanel.Parent = Main
-    Instance.new("UIListLayout", TabPanel).Padding = UDim.new(0, 4)
+    -- Title
+    local Title = Instance.new("TextLabel", Main)
+    Title.Size = UDim2.new(1, -20, 0, 40)
+    Title.Position = UDim2.fromOffset(10, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = "Sentinel Hub"
+    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 22
+    Title.TextXAlignment = Left
 
-    local ContentPanel = Instance.new("Frame")
-    ContentPanel.Size = UDim2.new(1, -140, 1, -36)
-    ContentPanel.Position = UDim2.new(0, 140, 0, 36)
-    ContentPanel.BackgroundColor3 = Theme.Background
-    ContentPanel.Parent = Main
+    -- Sidebar
+    local Sidebar = Instance.new("Frame", Main)
+    Sidebar.Size = UDim2.fromOffset(140, 350)
+    Sidebar.Position = UDim2.fromOffset(0, 40)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    Sidebar.BorderSizePixel = 0
+    Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
 
-    local tabs = {}
+    local TabLayout = Instance.new("UIListLayout", Sidebar)
+    TabLayout.Padding = UDim.new(0, 6)
 
-    UserInputService.InputBegan:Connect(function(input, processed)
-        if not processed and input.KeyCode == (toggleKey or Enum.KeyCode.RightShift) then
+    -- Pages
+    local Pages = Instance.new("Frame", Main)
+    Pages.Size = UDim2.new(1, -150, 1, -50)
+    Pages.Position = UDim2.fromOffset(150, 50)
+    Pages.BackgroundTransparency = 1
+
+    -- Toggle UI
+    UserInputService.InputBegan:Connect(function(input, gpe)
+        if not gpe and input.KeyCode == toggleKey then
             Main.Visible = not Main.Visible
         end
     end)
 
-    local api = {}
+    local Window = {}
+    local Tabs = {}
 
-    function api:CreateTab(tabName)
-        local tabButton = Instance.new("TextButton")
-        tabButton.Size = UDim2.new(1, -10, 0, 30)
-        tabButton.BackgroundColor3 = Theme.Section
-        tabButton.TextColor3 = Theme.Text
-        tabButton.Font = Enum.Font.Code
-        tabButton.TextSize = 15
-        tabButton.Text = "> " .. tabName
-        tabButton.BorderSizePixel = 0
-        tabButton.AutoButtonColor = false
-        tabButton.Parent = TabPanel
-        Instance.new("UICorner", tabButton).CornerRadius = UDim.new(0, 6)
+    --============================================================
+    -- TAB CREATION
+    --============================================================
+    function Window:CreateTab(name)
+        local TabButton = Instance.new("TextButton", Sidebar)
+        TabButton.Size = UDim2.new(1, -12, 0, 36)
+        TabButton.Text = name
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.TextSize = 16
+        TabButton.TextColor3 = Color3.fromRGB(220, 220, 220)
+        TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        TabButton.BorderSizePixel = 0
+        Instance.new("UICorner", TabButton).CornerRadius = UDim.new(0, 8)
 
-        local tabContent = Instance.new("ScrollingFrame")
-        tabContent.Size = UDim2.new(1, -20, 1, -20)
-        tabContent.Position = UDim2.fromOffset(10, 10)
-        tabContent.BackgroundTransparency = 1
-        tabContent.ScrollBarThickness = 6
-        tabContent.Visible = false
-        tabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        tabContent.CanvasSize = UDim2.new()
-        tabContent.Parent = ContentPanel
-        Instance.new("UIListLayout", tabContent).Padding = UDim.new(0, 8)
+        local Page = Instance.new("ScrollingFrame", Pages)
+        Page.Size = UDim2.new(1, 0, 1, 0)
+        Page.ScrollBarThickness = 4
+        Page.CanvasSize = UDim2.new()
+        Page.Visible = false
+        Page.BackgroundTransparency = 1
 
-        tabButton.MouseButton1Click:Connect(function()
-            for _, child in ipairs(ContentPanel:GetChildren()) do
-                if child:IsA("ScrollingFrame") then
-                    child.Visible = false
-                end
-            end
-            tabContent.Visible = true
-            HeaderLabel.Text = ("Sentinel Hub | Universal | User@%s | *%s*"):format(playerName, tabName)
+        local Layout = Instance.new("UIListLayout", Page)
+        Layout.Padding = UDim.new(0, 8)
+
+        Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            Page.CanvasSize = UDim2.fromOffset(0, Layout.AbsoluteContentSize.Y + 10)
         end)
 
-        if not next(tabs) then
-            tabContent.Visible = true
-            HeaderLabel.Text = ("Sentinel Hub | Universal | User@%s | *%s*"):format(playerName, tabName)
-        end
+        TabButton.MouseButton1Click:Connect(function()
+            for _, t in pairs(Tabs) do
+                t.Page.Visible = false
+            end
+            Page.Visible = true
+        end)
 
-        local tabAPI = {}
+        local Components = {}
 
-        function tabAPI:Label(text)
-            local lbl = Instance.new("TextLabel")
-            lbl.Size = UDim2.new(1, -20, 0, 22)
+        --============================================================
+        -- COMPONENTS
+        --============================================================
+        function Components:Label(text)
+            local lbl = Instance.new("TextLabel", Page)
+            lbl.Size = UDim2.new(1, -10, 0, 24)
             lbl.BackgroundTransparency = 1
-            lbl.TextColor3 = Theme.Text
-            lbl.Font = Enum.Font.Code
-            lbl.TextSize = 14
-            lbl.TextXAlignment = Enum.TextXAlignment.Left
             lbl.Text = text
-            lbl.Parent = tabContent
-            return lbl
+            lbl.TextWrapped = true
+            lbl.TextXAlignment = Left
+            lbl.Font = Enum.Font.Gotham
+            lbl.TextSize = 15
+            lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
         end
 
-        function tabAPI:Button(text, callback)
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1, -20, 0, 30)
-            btn.BackgroundColor3 = Theme.Section
-            btn.TextColor3 = Theme.Text
-            btn.Font = Enum.Font.Code
-            btn.TextSize = 14
+        function Components:Button(text, callback)
+            local btn = Instance.new("TextButton", Page)
+            btn.Size = UDim2.new(1, -10, 0, 36)
             btn.Text = text
+            btn.Font = Enum.Font.Gotham
+            btn.TextSize = 16
+            btn.TextColor3 = Color3.new(1, 1, 1)
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             btn.BorderSizePixel = 0
-            btn.AutoButtonColor = false
-            btn.Parent = tabContent
             Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 
-            btn.MouseEnter:Connect(function()
-                btn.BackgroundColor3 = Theme.Accent
-                btn.TextColor3 = Color3.new(1, 1, 1)
+            btn.MouseButton1Click:Connect(function()
+                if callback then callback() end
             end)
-            btn.MouseLeave:Connect(function()
-                btn.BackgroundColor3 = Theme.Section
-                btn.TextColor3 = Theme.Text
-            end)
-            btn.MouseButton1Click:Connect(callback)
-
-            return btn
         end
 
-        function tabAPI:Toggle(text, default, callback)
+        function Components:Toggle(text, default, callback)
             local state = default or false
-            local toggle = Instance.new("TextButton")
-            toggle.Size = UDim2.new(1, -20, 0, 30)
-            toggle.BackgroundColor3 = Theme.Section
-            toggle.TextColor3 = Theme.Text
-            toggle.Font = Enum.Font.Code
-            toggle.TextSize = 14
-            toggle.BorderSizePixel = 0
-            toggle.AutoButtonColor = false
-            toggle.Parent = tabContent
-            Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 6)
 
-            local function update()
-                toggle.Text = ("%s: [%s]"):format(text, state and "ON" or "OFF")
-            end
-            update()
+            local holder = Instance.new("Frame", Page)
+            holder.Size = UDim2.new(1, -10, 0, 30)
+            holder.BackgroundTransparency = 1
 
-            toggle.MouseButton1Click:Connect(function()
+            local box = Instance.new("TextButton", holder)
+            box.Size = UDim2.fromOffset(22, 22)
+            box.Position = UDim2.fromOffset(0, 4)
+            box.Text = ""
+            box.BorderSizePixel = 0
+            box.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
+            Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
+
+            local lbl = Instance.new("TextLabel", holder)
+            lbl.Position = UDim2.fromOffset(30, 0)
+            lbl.Size = UDim2.new(1, -30, 1, 0)
+            lbl.BackgroundTransparency = 1
+            lbl.Text = text
+            lbl.Font = Enum.Font.Gotham
+            lbl.TextSize = 16
+            lbl.TextXAlignment = Left
+            lbl.TextColor3 = Color3.new(1, 1, 1)
+
+            box.MouseButton1Click:Connect(function()
                 state = not state
-                update()
+                box.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
                 if callback then callback(state) end
             end)
-
-            return toggle
         end
 
-        tabs[tabName] = tabAPI
-        return tabAPI
+        Tabs[#Tabs + 1] = {Page = Page}
+        if #Tabs == 1 then
+            Page.Visible = true
+        end
+
+        return Components
     end
 
-    function api:Destroy()
-        if Gui and Gui.Parent then
-            Gui:Destroy()
-        end
-        if _currentGui == Gui then
-            _currentGui = nil
-        end
+    function Window:Destroy()
+        ScreenGui:Destroy()
     end
 
-    return api
+    return Window
 end
 
-return {
-    CreateWindow = CreateSentinelWindow
-}
+return SentinelUI
