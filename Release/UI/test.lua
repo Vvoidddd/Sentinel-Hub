@@ -1,5 +1,5 @@
 --============================================================
--- Sentinel Hub v5 Test
+-- Sentinel UI Recode - Test
 --============================================================
 
 -- Load the UI module
@@ -14,19 +14,16 @@ local Window = SentinelUI.CreateWindow(Enum.KeyCode.RightShift)
 -- MAIN TAB
 --============================================================
 local MainTab = Window:CreateTab("Main")
-MainTab:Label("Sentinel Hub v5 Example")
+MainTab:Label("Sentinel UI Recode Example")
 
--- Button example
 MainTab:Button("Print Hello", function()
-    print("Hello from SentinelUI v5!")
+    print("Hello from Sentinel UI Recode!")
 end)
 
--- Toggle example
 MainTab:Toggle("God Mode", false, function(state)
     print("God Mode:", state)
 end)
 
--- Slider example
 MainTab:Slider(0, 100, 50, function(value)
     print("Slider value:", math.floor(value))
 end)
@@ -58,11 +55,10 @@ MiscTab:Button("Destroy UI", function()
     Window:Destroy()
 end)
 
--- Extra demo elements
-MiscTab:Slider(1, 10, 5, function(val)
-    print("Demo Slider value:", val)
-end)
-
 MiscTab:Toggle("Enable Feature X", true, function(state)
     print("Feature X Enabled:", state)
+end)
+
+MiscTab:Slider(1, 10, 5, function(val)
+    print("Demo Slider value:", val)
 end)

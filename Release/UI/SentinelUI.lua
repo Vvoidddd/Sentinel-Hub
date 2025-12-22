@@ -1,5 +1,11 @@
 --============================================================
--- SentinelUI v5 - Collapsible Top Bar + Smooth Drag Only
+-- Sentinel UI Recode - Collapsible Top Bar + Smooth Drag Only
+--============================================================
+-- New Features:
+-- 1. Smooth top-bar-only dragging (no jump under mouse)
+-- 2. Collapsible UI keeps only top bar visible
+-- 3. Close button switches to fullscreen icon when collapsed
+-- 4. Sidebar and pages hide when collapsed
 --============================================================
 local SentinelUI = {}
 
@@ -9,16 +15,17 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Smooth draggable top bar
+-- Smooth draggable top bar (fixed offset calculation)
 local function makeTopBarDraggable(frame, topBar)
     local dragging = false
-    local dragOffset = Vector2.new()
-    local targetPosition = frame.Position
+    local dragStartPos = Vector2.new()
+    local frameStartPos = UDim2.new()
 
     topBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
-            dragOffset = input.Position - frame.AbsolutePosition
+            dragStartPos = input.Position
+            frameStartPos = frame.Position
         end
     end)
 
@@ -30,15 +37,15 @@ local function makeTopBarDraggable(frame, topBar)
 
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            targetPosition = UDim2.fromOffset(
-                input.Position.X - dragOffset.X,
-                input.Position.Y - dragOffset.Y
+            local delta = input.Position - dragStartPos
+            local newPos = UDim2.new(
+                frameStartPos.X.Scale,
+                frameStartPos.X.Offset + delta.X,
+                frameStartPos.Y.Scale,
+                frameStartPos.Y.Offset + delta.Y
             )
+            frame.Position = frame.Position:Lerp(newPos, 0.2)
         end
-    end)
-
-    RunService.RenderStepped:Connect(function()
-        frame.Position = frame.Position:Lerp(targetPosition, 0.15)
     end)
 end
 
@@ -83,6 +90,21 @@ function SentinelUI.CreateWindow(toggleKey)
     Title.TextSize = 18
     Title.TextXAlignment = Enum.TextXAlignment.Left
 
+    -- Sidebar & Pages
+    local Sidebar = Instance.new("Frame", Main)
+    Sidebar.Size = UDim2.fromOffset(140, 350)
+    Sidebar.Position = UDim2.fromOffset(0, 40)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    Sidebar.BorderSizePixel = 0
+    Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
+    local TabLayout = Instance.new("UIListLayout", Sidebar)
+    TabLayout.Padding = UDim.new(0, 6)
+
+    local Pages = Instance.new("Frame", Main)
+    Pages.Size = UDim2.new(1, -150, 1, -50)
+    Pages.Position = UDim2.fromOffset(150, 50)
+    Pages.BackgroundTransparency = 1
+
     -- Close / Collapse Button
     local CloseButton = Instance.new("TextButton", TopBar)
     CloseButton.Size = UDim2.fromOffset(30, 30)
@@ -100,54 +122,29 @@ function SentinelUI.CreateWindow(toggleKey)
 
     CloseButton.MouseButton1Click:Connect(function()
         if expanded then
-            -- Collapse: keep only top bar visible
             prevSize = Main.Size
             Main.Size = UDim2.new(Main.Size.X.Scale, Main.Size.X.Offset, 0, 40)
-            CloseButton.Text = "▢" -- fullscreen icon
+            Sidebar.Visible = false
+            Pages.Visible = false
+            CloseButton.Text = "▢"
             expanded = false
         else
-            -- Expand
             Main.Size = prevSize
+            Sidebar.Visible = true
+            Pages.Visible = true
             CloseButton.Text = "X"
             expanded = true
         end
     end)
 
-    -- Bottom-left toggle key
-    local KeyLabel = Instance.new("TextLabel", Main)
-    KeyLabel.Size = UDim2.new(0, 180, 0, 20)
-    KeyLabel.Position = UDim2.new(0, 10, 1, -30)
-    KeyLabel.BackgroundTransparency = 1
-    KeyLabel.Text = "Toggle Key: " .. tostring(toggleKey.Name)
-    KeyLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    KeyLabel.Font = Enum.Font.Gotham
-    KeyLabel.TextSize = 14
-    KeyLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- Sidebar
-    local Sidebar = Instance.new("Frame", Main)
-    Sidebar.Size = UDim2.fromOffset(140, 350)
-    Sidebar.Position = UDim2.fromOffset(0, 40)
-    Sidebar.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    Sidebar.BorderSizePixel = 0
-    Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
-    local TabLayout = Instance.new("UIListLayout", Sidebar)
-    TabLayout.Padding = UDim.new(0, 6)
-
-    -- Pages
-    local Pages = Instance.new("Frame", Main)
-    Pages.Size = UDim2.new(1, -150, 1, -50)
-    Pages.Position = UDim2.fromOffset(150, 50)
-    Pages.BackgroundTransparency = 1
-
-    -- Toggle visibility
+    -- Toggle visibility with key
     UserInputService.InputBegan:Connect(function(input, gpe)
         if not gpe and input.KeyCode == toggleKey then
             Main.Visible = not Main.Visible
         end
     end)
 
-    -- Apply smooth top-bar dragging
+    -- Apply smooth dragging
     makeTopBarDraggable(Main, TopBar)
 
     local Window = {}
