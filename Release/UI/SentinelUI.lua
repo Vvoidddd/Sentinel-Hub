@@ -1,5 +1,5 @@
 --============================================================
--- SentinelUI v2 - Complete Recode by Void
+-- SentinelUI v3 - Top Bar + Smooth Dragging by Void
 --============================================================
 
 local SentinelUI = {}
@@ -11,19 +11,20 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Utils
-local function makeDraggable(frame)
+-- Smooth draggable top bar
+local function makeTopBarDraggable(frame, topBar)
     local dragging = false
     local dragOffset = Vector2.new()
+    local targetPosition = frame.Position
 
-    frame.InputBegan:Connect(function(input)
+    topBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragOffset = input.Position - frame.AbsolutePosition
         end
     end)
 
-    frame.InputEnded:Connect(function(input)
+    topBar.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
@@ -31,11 +32,17 @@ local function makeDraggable(frame)
 
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            frame.Position = UDim2.fromOffset(
+            targetPosition = UDim2.fromOffset(
                 input.Position.X - dragOffset.X,
                 input.Position.Y - dragOffset.Y
             )
         end
+    end)
+
+    -- Smooth follow
+    RunService.RenderStepped:Connect(function()
+        local currentPos = frame.Position
+        frame.Position = currentPos:Lerp(targetPosition, 0.15)
     end)
 end
 
@@ -58,23 +65,56 @@ function SentinelUI.CreateWindow(toggleKey)
     Main.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
     Main.BorderSizePixel = 0
     Main.Parent = ScreenGui
-    makeDraggable(Main)
-
     Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
     local Stroke = Instance.new("UIStroke", Main)
     Stroke.Color = Color3.fromRGB(45, 45, 45)
     Stroke.Thickness = 1.5
 
-    -- Title
-    local Title = Instance.new("TextLabel", Main)
-    Title.Size = UDim2.new(1, -20, 0, 40)
+    -- Top Bar
+    local TopBar = Instance.new("Frame", Main)
+    TopBar.Size = UDim2.new(1, 0, 0, 40)
+    TopBar.Position = UDim2.new(0, 0, 0, 0)
+    TopBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    TopBar.BorderSizePixel = 0
+    Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 12)
+
+    -- Title on top bar
+    local Title = Instance.new("TextLabel", TopBar)
+    Title.Size = UDim2.new(1, -60, 1, 0)
     Title.Position = UDim2.fromOffset(10, 0)
     Title.BackgroundTransparency = 1
     Title.Text = "Sentinel Hub"
-    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 22
+    Title.TextSize = 18
     Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- Close button
+    local CloseButton = Instance.new("TextButton", TopBar)
+    CloseButton.Size = UDim2.fromOffset(30, 30)
+    CloseButton.Position = UDim2.new(1, -35, 0.5, -15)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    CloseButton.Text = "X"
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.TextSize = 18
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.BorderSizePixel = 0
+    Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
+
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+
+    -- Bottom left key display
+    local KeyLabel = Instance.new("TextLabel", Main)
+    KeyLabel.Size = UDim2.new(0, 150, 0, 20)
+    KeyLabel.Position = UDim2.new(0, 10, 1, -30)
+    KeyLabel.BackgroundTransparency = 1
+    KeyLabel.Text = "Toggle Key: " .. tostring(toggleKey.Name)
+    KeyLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    KeyLabel.Font = Enum.Font.Gotham
+    KeyLabel.TextSize = 14
+    KeyLabel.TextXAlignment = Enum.TextXAlignment.Left
 
     -- Sidebar
     local Sidebar = Instance.new("Frame", Main)
@@ -86,18 +126,21 @@ function SentinelUI.CreateWindow(toggleKey)
     local TabLayout = Instance.new("UIListLayout", Sidebar)
     TabLayout.Padding = UDim.new(0, 6)
 
-    -- Pages Holder
+    -- Pages
     local Pages = Instance.new("Frame", Main)
     Pages.Size = UDim2.new(1, -150, 1, -50)
     Pages.Position = UDim2.fromOffset(150, 50)
     Pages.BackgroundTransparency = 1
 
-    -- Toggle UI visibility
+    -- Toggle visibility
     UserInputService.InputBegan:Connect(function(input, gpe)
         if not gpe and input.KeyCode == toggleKey then
             Main.Visible = not Main.Visible
         end
     end)
+
+    -- Apply smooth top-bar dragging
+    makeTopBarDraggable(Main, TopBar)
 
     local Window = {}
     local Tabs = {}
@@ -138,7 +181,6 @@ function SentinelUI.CreateWindow(toggleKey)
 
         local Components = {}
 
-        -- Label
         function Components:Label(text)
             local lbl = Instance.new("TextLabel", Page)
             lbl.Size = UDim2.new(1, -10, 0, 24)
@@ -151,7 +193,6 @@ function SentinelUI.CreateWindow(toggleKey)
             lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
         end
 
-        -- Button
         function Components:Button(text, callback)
             local btn = Instance.new("TextButton", Page)
             btn.Size = UDim2.new(1, -10, 0, 36)
@@ -162,19 +203,14 @@ function SentinelUI.CreateWindow(toggleKey)
             btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             btn.BorderSizePixel = 0
             Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-
-            btn.MouseButton1Click:Connect(function()
-                if callback then callback() end
-            end)
+            btn.MouseButton1Click:Connect(callback)
         end
 
-        -- Toggle
         function Components:Toggle(text, default, callback)
             local state = default or false
             local holder = Instance.new("Frame", Page)
             holder.Size = UDim2.new(1, -10, 0, 30)
             holder.BackgroundTransparency = 1
-
             local box = Instance.new("TextButton", holder)
             box.Size = UDim2.fromOffset(22, 22)
             box.Position = UDim2.fromOffset(0, 4)
@@ -182,7 +218,6 @@ function SentinelUI.CreateWindow(toggleKey)
             box.BorderSizePixel = 0
             box.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
             Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
-
             local lbl = Instance.new("TextLabel", holder)
             lbl.Position = UDim2.fromOffset(30, 0)
             lbl.Size = UDim2.new(1, -30, 1, 0)
@@ -192,59 +227,10 @@ function SentinelUI.CreateWindow(toggleKey)
             lbl.TextSize = 16
             lbl.TextXAlignment = Enum.TextXAlignment.Left
             lbl.TextColor3 = Color3.new(1, 1, 1)
-
             box.MouseButton1Click:Connect(function()
                 state = not state
                 box.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
                 if callback then callback(state) end
-            end)
-        end
-
-        -- Slider (basic)
-        function Components:Slider(min, max, default, callback)
-            default = default or min
-            local sliderFrame = Instance.new("Frame", Page)
-            sliderFrame.Size = UDim2.new(1, -10, 0, 30)
-            sliderFrame.BackgroundTransparency = 1
-
-            local bar = Instance.new("Frame", sliderFrame)
-            bar.Size = UDim2.new(1, 0, 0, 6)
-            bar.Position = UDim2.fromOffset(0, 12)
-            bar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            bar.BorderSizePixel = 0
-            Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 3)
-
-            local handle = Instance.new("Frame", bar)
-            handle.Size = UDim2.new(0, 12, 0, 12)
-            handle.Position = UDim2.fromScale((default - min) / (max - min), 0)
-            handle.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-            Instance.new("UICorner", handle).CornerRadius = UDim.new(0, 6)
-
-            local dragging = false
-            local function update(input)
-                local x = math.clamp(input.Position.X - bar.AbsolutePosition.X, 0, bar.AbsoluteSize.X)
-                handle.Position = UDim2.fromOffset(x - handle.AbsoluteSize.X / 2, 0)
-                local value = min + (max - min) * (x / bar.AbsoluteSize.X)
-                if callback then callback(value) end
-            end
-
-            bar.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = true
-                    update(input)
-                end
-            end)
-
-            UserInputService.InputChanged:Connect(function(input)
-                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                    update(input)
-                end
-            end)
-
-            UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = false
-                end
             end)
         end
 
