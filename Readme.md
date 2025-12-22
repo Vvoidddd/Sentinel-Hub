@@ -1,7 +1,16 @@
-
 # Sentinel Hub Loader
 
-**Sentinel Hub** is a universal multi-hub loader for Roblox. It auto-detects the current game and loads the appropriate hub interface. If the game isn’t specifically supported, it falls back to a feature-rich **Universal Hub UI** with a modular, customizable interface.
+**Sentinel Hub** is a universal multi-hub loader for Roblox. It automatically detects the current game and loads the appropriate hub interface. If the game isn’t specifically supported, it falls back to a feature-rich **Universal Hub UI** with a modular, customizable interface.
+
+---
+
+## 📌 Personal Update from the Developer
+
+I want to take a moment to address why development on **Sentinel Hub** stalled for a while. Recently, I went through a difficult personal situation—my girlfriend of over a year left me. It was a heavy hit, and honestly, it affected my motivation and focus on coding.
+
+That said, I’m back, energized, and fully committed to updating **Sentinel Hub**. This version includes major rewrites to the UI, better modularity, smoother performance, and features inspired by Octosniff and other top-tier Roblox loaders. I appreciate everyone who’s stuck with the project and shared feedback—your patience means a lot.
+
+With this update, **Sentinel Hub** is cleaner, more stable, and much easier to extend with new tabs and features. Expect continuous improvements as I rebuild the loader into something more robust and user-friendly.
 
 ---
 
@@ -29,7 +38,7 @@
 
    ```lua
    loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/Loader.lua"))()
-
+   ```
 
 4. **Sentinel Hub auto-detects your game** and loads:
 
@@ -91,7 +100,7 @@ UI:Destroy()
 
 ---
 
-## 🧪 Full Example
+## 🧪 Full Example (Test)
 
 ```lua
 local SentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
@@ -101,7 +110,6 @@ local main = UI:CreateTab("Main")
 main:Label("Welcome!")
 main:Button("Print Hello", function() print("Hello") end)
 main:Toggle("Auto Farm", false, function(state) print("AutoFarm:", state) end)
--- Slider support not implemented in current UI module
 
 local settings = UI:CreateTab("Settings")
 settings:Label("Config")
@@ -121,28 +129,37 @@ settings:Button("Close UI", function() UI:Destroy() end)
 
 * **Void (Vvoidddd)** – Lead Developer of Sentinel Hub and UI System
 
+---
 
+## 🆕 New in This Update
+
+* Complete UI recode with collapsible top bar
+* Top-bar-only smooth dragging
+* Full support for tabs, buttons, toggles, and sliders
+* Cleaner modular architecture for easier extension
+* Improved appearance inspired by Octosniff
+* Collapse/expand functionality without hiding the top bar
 
 ---
 
-## test.lua 
+## 📝 test.lua Example
 
 ```lua
-local SentinelUI = loadstring(game\:HttpGet("[https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))(](https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua%22%29%29%28))
+local SentinelUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vvoidddd/Sentinel-Hub/main/Release/UI/SentinelUI.lua"))()
 local UI = SentinelUI.CreateWindow(Enum.KeyCode.RightShift)
 
-local terminal = UI\:CreateTab("Terminal")
-terminal\:Label("Welcome to Sentinel UI Terminal!")
-terminal\:Button("Print Hello", function()
-print("Hello from Sentinel UI!")
+local terminal = UI:CreateTab("Terminal")
+terminal:Label("Welcome to Sentinel UI Terminal!")
+terminal:Button("Print Hello", function()
+    print("Hello from Sentinel UI!")
 end)
-terminal\:Toggle("Auto Mode", false, function(state)
-print("Auto Mode:", state)
-end)
-
-local settings = UI\:CreateTab("Settings")
-settings\:Label("Settings Panel")
-settings\:Button("Close UI", function()
-UI\:Destroy()
+terminal:Toggle("Auto Mode", false, function(state)
+    print("Auto Mode:", state)
 end)
 
+local settings = UI:CreateTab("Settings")
+settings:Label("Settings Panel")
+settings:Button("Close UI", function()
+    UI:Destroy()
+end)
+```
