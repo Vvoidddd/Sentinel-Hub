@@ -250,13 +250,49 @@ function SentinelUI.CreateWindow(options)
         return handle
     end
 
+    local notices = create("Frame", gui, {
+        Name = "Notifications", BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -16),
+        Size = UDim2.new(1, -32, 1, -32), ZIndex = 20,
+    })
+    create("UISizeConstraint", notices, {MaxSize = Vector2.new(360, 10000)})
+    create("UIListLayout", notices, {
+        SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10),
+        VerticalAlignment = Enum.VerticalAlignment.Bottom,
+    })
+    local noticeOrder = 0
     function window:SetStatus(message) footer.Text = tostring(message) end
     function window:Notification(settings)
-        self:SetStatus((settings.Title or "Sentinel") .. "  /  " .. (settings.Content or ""))
-        local message = footer.Text
-        task.delay(settings.Duration or 5, function()
-            if alive and footer.Text == message then footer.Text = options.Name or "SENTINEL HUB" end
+        if not alive then return end
+        settings = settings or {}
+        noticeOrder = noticeOrder + 1
+        local toast = create("Frame", notices, {
+            Name = "Notification", Size = UDim2.new(1, 0, 0, 0),
+            AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = colors.panel,
+            BorderSizePixel = 0, LayoutOrder = noticeOrder, ZIndex = 20,
+        })
+        corner(toast, 7)
+        outline(toast)
+        create("UIPadding", toast, {
+            PaddingTop = UDim.new(0, 14), PaddingBottom = UDim.new(0, 14),
+            PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14),
+        })
+        create("UIListLayout", toast, {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6)})
+        local title = text(toast, tostring(settings.Title or "Sentinel"), UDim2.new(), UDim2.new(1, -28, 0, 20), 14, colors.accent, Enum.Font.GothamBold)
+        title.LayoutOrder, title.ZIndex = 1, 21
+        local message = text(toast, tostring(settings.Content or ""), UDim2.new(), UDim2.new(1, 0, 0, 0), 13)
+        message.LayoutOrder, message.TextWrapped, message.TextTruncate = 2, true, Enum.TextTruncate.None
+        message.AutomaticSize, message.TextYAlignment = Enum.AutomaticSize.Y, Enum.TextYAlignment.Top
+        message.ZIndex = 21
+        local close = button(title, "X", UDim2.new(1, 6, 0, 0), UDim2.fromOffset(22, 20))
+        close.Name, close.ZIndex = "Dismiss", 22
+        close.Activated:Connect(function() toast:Destroy() end)
+        local duration = tonumber(settings.Duration) or 5
+        if not finite(duration) then duration = 5 end
+        task.delay(math.clamp(duration, 0.1, 60), function()
+            if alive and toast.Parent then toast:Destroy() end
         end)
+        return toast
     end
     function window:SaveConfig()
         if not options.ConfigFile then return false, "No config file configured" end
