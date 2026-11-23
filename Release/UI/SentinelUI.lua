@@ -1,275 +1,298 @@
---============================================================
--- Sentinel UI Recode - Collapsible Top Bar + Smooth Drag Only
---============================================================
--- New Features:
--- 1. Smooth top-bar-only dragging (no jump under mouse)
--- 2. Collapsible UI keeps only top bar visible
--- 3. Close button switches to fullscreen icon when collapsed
--- 4. Sidebar and pages hide when collapsed
---============================================================
+-- Sentinel UI: launcher-style shell, native Roblox controls.
 local SentinelUI = {}
-
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local Input = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local colors = {
+    base = Color3.fromRGB(11, 9, 22),
+    panel = Color3.fromRGB(20, 16, 35),
+    border = Color3.fromRGB(58, 47, 80),
+    text = Color3.fromRGB(244, 239, 255),
+    muted = Color3.fromRGB(171, 159, 195),
+    accent = Color3.fromRGB(181, 137, 255),
+}
 
--- Smooth draggable top bar (fixed offset calculation)
-local function makeTopBarDraggable(frame, topBar)
-    local dragging = false
-    local dragStartPos = Vector2.new()
-    local frameStartPos = UDim2.new()
+local function create(class, parent, properties)
+    local object = Instance.new(class)
+    for key, value in pairs(properties or {}) do object[key] = value end
+    object.Parent = parent
+    return object
+end
 
-    topBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStartPos = input.Position
-            frameStartPos = frame.Position
-        end
-    end)
+local function corner(object, radius)
+    create("UICorner", object, {CornerRadius = UDim.new(0, radius)})
+end
 
-    topBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
+local function outline(object)
+    create("UIStroke", object, {Color = colors.border, Thickness = 1})
+end
 
-    local dragConnection = UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStartPos
-            local newPos = UDim2.new(
-                frameStartPos.X.Scale,
-                frameStartPos.X.Offset + delta.X,
-                frameStartPos.Y.Scale,
-                frameStartPos.Y.Offset + delta.Y
-            )
-            frame.Position = frame.Position:Lerp(newPos, 0.2)
-        end
-    end)
-    frame.Destroying:Connect(function()
-        dragConnection:Disconnect()
-    end)
+local function text(parent, value, position, size, fontSize, color, font)
+    return create("TextLabel", parent, {
+        BackgroundTransparency = 1, Position = position, Size = size,
+        Text = value, TextSize = fontSize, TextColor3 = color or colors.text,
+        Font = font or Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+    })
+end
+
+local function button(parent, value, position, size)
+    local control = create("TextButton", parent, {
+        Position = position, Size = size, BackgroundColor3 = colors.panel,
+        BorderSizePixel = 0, Text = value, TextColor3 = colors.text,
+        Font = Enum.Font.GothamBold, TextSize = 13, AutoButtonColor = true,
+    })
+    corner(control, 5)
+    return control
 end
 
 function SentinelUI.CreateWindow(toggleKey)
     toggleKey = toggleKey or Enum.KeyCode.RightShift
+    local parent = player:WaitForChild("PlayerGui")
+    local previous = parent:FindFirstChild("SentinelUI")
+    if previous then previous:Destroy() end
+    local gui = create("ScreenGui", parent, {
+        Name = "SentinelUI", ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+    })
+    local connections, tabs = {}, {}
+    local alive = true
+    local function connect(signal, callback)
+        local connection = signal:Connect(callback)
+        table.insert(connections, connection)
+        return connection
+    end
+    gui.Destroying:Connect(function()
+        alive = false
+        for _, connection in ipairs(connections) do connection:Disconnect() end
+    end)
 
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "SentinelUI"
-    ScreenGui.Parent = game.CoreGui
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    local main = create("Frame", gui, {
+        Name = "Main", Size = UDim2.fromOffset(900, 600),
+        Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundColor3 = colors.base, BorderSizePixel = 0, ClipsDescendants = true,
+    })
+    corner(main, 10)
+    outline(main)
+    local scale = create("UIScale", main, {})
+    local function fit()
+        local camera = workspace.CurrentCamera
+        if camera then
+            scale.Scale = math.max(0.1, math.min(1, (camera.ViewportSize.X - 24) / 900, (camera.ViewportSize.Y - 48) / 600))
+        end
+    end
+    local viewportConnection
+    local function watchCamera()
+        if viewportConnection then viewportConnection:Disconnect() end
+        if workspace.CurrentCamera then
+            viewportConnection = connect(workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"), fit)
+        end
+        fit()
+    end
+    connect(workspace:GetPropertyChangedSignal("CurrentCamera"), watchCamera)
+    watchCamera()
 
-    -- Main Frame
-    local Main = Instance.new("Frame")
-    Main.Size = UDim2.fromOffset(600, 400)
-    Main.Position = UDim2.fromScale(0.5, 0.5)
-    Main.AnchorPoint = Vector2.new(0.5, 0.5)
-    Main.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-    Main.BorderSizePixel = 0
-    Main.Parent = ScreenGui
-    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
-    local Stroke = Instance.new("UIStroke", Main)
-    Stroke.Color = Color3.fromRGB(50, 50, 50)
-    Stroke.Thickness = 2
+    local header = create("Frame", main, {
+        Name = "Header", Size = UDim2.new(1, 0, 0, 72),
+        BackgroundColor3 = colors.base, BorderSizePixel = 0, Active = true,
+    })
+    text(header, "S", UDim2.fromOffset(24, 12), UDim2.fromOffset(32, 48), 36, colors.accent, Enum.Font.Oswald)
+    text(header, "S E N T I N E L", UDim2.fromOffset(70, 16), UDim2.fromOffset(180, 16), 10, colors.accent)
+    text(header, "HUB", UDim2.fromOffset(69, 31), UDim2.fromOffset(180, 28), 25, nil, Enum.Font.Oswald)
 
-    -- Top Bar
-    local TopBar = Instance.new("Frame", Main)
-    TopBar.Size = UDim2.new(1, 0, 0, 40)
-    TopBar.Position = UDim2.new(0, 0, 0, 0)
-    TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    TopBar.BorderSizePixel = 0
-    Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 12)
+    local avatar = create("ImageLabel", header, {
+        Name = "Avatar", Position = UDim2.new(1, -342, 0, 15),
+        Size = UDim2.fromOffset(42, 42), BackgroundColor3 = colors.panel,
+        BorderSizePixel = 0, Image = "",
+    })
+    corner(avatar, 21)
+    create("UIStroke", avatar, {Color = colors.accent, Thickness = 2})
+    local fallback = text(avatar, "?", UDim2.new(), UDim2.fromScale(1, 1), 20, colors.accent)
+    fallback.TextXAlignment = Enum.TextXAlignment.Center
+    text(header, player.DisplayName, UDim2.new(1, -287, 0, 17), UDim2.fromOffset(142, 20), 14, nil, Enum.Font.GothamBold)
+    text(header, "@" .. player.Name, UDim2.new(1, -287, 0, 38), UDim2.fromOffset(142, 16), 11, colors.muted)
+    -- Thumbnail loading never blocks opening or unloading the window.
+    task.spawn(function()
+        for attempt = 1, 3 do
+            if not alive then return end
+            local ok, image, ready = pcall(function()
+                return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size180x180)
+            end)
+            if not alive then return end
+            if ok and ready then
+                avatar.Image = image
+                fallback.Visible = false
+                return
+            end
+            if attempt < 3 then task.wait(1) end
+        end
+    end)
 
-    -- Title
-    local Title = Instance.new("TextLabel", TopBar)
-    Title.Size = UDim2.new(1, -150, 1, 0)
-    Title.Position = UDim2.fromOffset(10, 0)
-    Title.BackgroundTransparency = 1
-    Title.Text = "Sentinel Hub"
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 18
-    Title.TextXAlignment = Enum.TextXAlignment.Left
+    local collapse = button(header, "-", UDim2.new(1, -128, 0, 23), UDim2.fromOffset(30, 28))
+    collapse.Name = "Collapse"
+    local unload = button(header, "Unload", UDim2.new(1, -88, 0, 23), UDim2.fromOffset(70, 28))
+    unload.Name = "Unload"
+    outline(unload)
+    connect(unload.Activated, function() gui:Destroy() end)
 
-    -- Sidebar & Pages
-    local Sidebar = Instance.new("Frame", Main)
-    Sidebar.Size = UDim2.fromOffset(140, 350)
-    Sidebar.Position = UDim2.fromOffset(0, 40)
-    Sidebar.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    Sidebar.BorderSizePixel = 0
-    Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
-    local TabLayout = Instance.new("UIListLayout", Sidebar)
-    TabLayout.Padding = UDim.new(0, 6)
+    local body = create("Frame", main, {
+        Name = "Body", Position = UDim2.fromOffset(0, 72), Size = UDim2.new(1, 0, 1, -72),
+        BackgroundTransparency = 1,
+    })
+    local nav = create("ScrollingFrame", body, {
+        Name = "Navigation", Size = UDim2.new(1, 0, 0, 54),
+        BackgroundColor3 = colors.panel, BorderSizePixel = 0,
+        CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X,
+        ScrollingDirection = Enum.ScrollingDirection.X, ScrollBarThickness = 2,
+        ScrollBarImageColor3 = colors.accent,
+    })
+    create("UIPadding", nav, {PaddingLeft = UDim.new(0, 22), PaddingRight = UDim.new(0, 22)})
+    create("UIListLayout", nav, {FillDirection = Enum.FillDirection.Horizontal, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 12)})
 
-    local Pages = Instance.new("Frame", Main)
-    Pages.Size = UDim2.new(1, -150, 1, -50)
-    Pages.Position = UDim2.fromOffset(150, 50)
-    Pages.BackgroundTransparency = 1
-
-    -- Close / Collapse Button
-    local CloseButton = Instance.new("TextButton", TopBar)
-    CloseButton.Size = UDim2.fromOffset(30, 30)
-    CloseButton.Position = UDim2.new(1, -40, 0.5, -15)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
-    CloseButton.Text = "X"
-    CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.TextSize = 18
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.BorderSizePixel = 0
-    Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
-
-    local Unload = Instance.new("TextButton", TopBar)
-    Unload.Size = UDim2.fromOffset(80, 30)
-    Unload.Position = UDim2.new(1, -130, 0.5, -15)
-    Unload.Text = "Unload"
-    Unload.Font = Enum.Font.Gotham
-    Unload.TextSize = 14
-    Unload.TextColor3 = Color3.new(1, 1, 1)
-    Unload.BackgroundColor3 = Color3.fromRGB(55, 35, 35)
-    Unload.BorderSizePixel = 0
-    Instance.new("UICorner", Unload).CornerRadius = UDim.new(0, 6)
+    local hero = create("Frame", body, {
+        Position = UDim2.fromOffset(0, 55), Size = UDim2.new(1, 0, 0, 142),
+        BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, ClipsDescendants = true,
+    })
+    create("UIGradient", hero, {
+        Color = ColorSequence.new(colors.panel, Color3.fromRGB(55, 27, 92)), Rotation = 15,
+    })
+    -- Native geometric accents keep the background independent of external assets.
+    for i = 1, 3 do
+        local shard = create("Frame", hero, {
+            Size = UDim2.fromOffset(150, 230), Position = UDim2.new(1, -80 - i * 65, 0, -50),
+            Rotation = 32, BackgroundTransparency = 0.88, BackgroundColor3 = colors.accent,
+            BorderSizePixel = 0,
+        })
+        create("UIStroke", shard, {Color = colors.accent, Transparency = 0.7})
+    end
+    text(hero, "YOUR SPACE. YOUR CONTROL.", UDim2.fromOffset(26, 19), UDim2.new(1, -52, 0, 17), 10, colors.accent, Enum.Font.GothamBold)
+    text(hero, "WELCOME BACK, " .. string.upper(player.DisplayName), UDim2.fromOffset(24, 43), UDim2.new(1, -52, 0, 44), 32, nil, Enum.Font.Oswald)
+    local section = text(hero, "Select a tab to get started.", UDim2.fromOffset(26, 100), UDim2.new(1, -52, 0, 20), 13, colors.muted)
+    local pages = create("Frame", body, {
+        Position = UDim2.fromOffset(24, 213), Size = UDim2.new(1, -48, 1, -257), BackgroundTransparency = 1,
+    })
+    text(body, "SENTINEL HUB", UDim2.new(0, 24, 1, -32), UDim2.new(0.5, 0, 0, 22), 10, colors.muted)
+    local hint = text(body, toggleKey.Name .. "  /  SHOW OR HIDE", UDim2.new(0.5, 0, 1, -32), UDim2.new(0.5, -24, 0, 22), 10, colors.muted)
+    hint.TextXAlignment = Enum.TextXAlignment.Right
 
     local expanded = true
-    local prevSize = Main.Size
-
-    CloseButton.MouseButton1Click:Connect(function()
-        if expanded then
-            prevSize = Main.Size
-            Main.Size = UDim2.new(Main.Size.X.Scale, Main.Size.X.Offset, 0, 40)
-            Sidebar.Visible = false
-            Pages.Visible = false
-            CloseButton.Text = "▢"
-            expanded = false
-        else
-            Main.Size = prevSize
-            Sidebar.Visible = true
-            Pages.Visible = true
-            CloseButton.Text = "X"
-            expanded = true
+    connect(collapse.Activated, function()
+        expanded = not expanded
+        body.Visible = expanded
+        main.Size = UDim2.fromOffset(900, expanded and 600 or 72)
+        collapse.Text = expanded and "-" or "+"
+    end)
+    connect(Input.InputBegan, function(input, processed)
+        if not processed and input.KeyCode == toggleKey and not Input:GetFocusedTextBox() then
+            main.Visible = not main.Visible
         end
     end)
 
-    -- Toggle visibility with key
-    local toggleConnection = UserInputService.InputBegan:Connect(function(input, gpe)
-        if not gpe and input.KeyCode == toggleKey then
-            Main.Visible = not Main.Visible
+    local dragInput, dragStart, startPosition
+    connect(header.InputBegan, function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput, dragStart, startPosition = input, input.Position, main.Position
         end
     end)
-    ScreenGui.Destroying:Connect(function()
-        toggleConnection:Disconnect()
+    connect(Input.InputChanged, function(input)
+        if dragInput and (input == dragInput or input.UserInputType == Enum.UserInputType.MouseMovement) then
+            local delta = input.Position - dragStart
+            main.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X,
+                startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
+        end
+    end)
+    connect(Input.InputEnded, function(input)
+        if input == dragInput then dragInput = nil end
     end)
 
-    -- Apply smooth dragging
-    makeTopBarDraggable(Main, TopBar)
-
-    local Window = {}
-    local Tabs = {}
-
-    function Window:CreateTab(name)
-        local TabButton = Instance.new("TextButton", Sidebar)
-        TabButton.Size = UDim2.new(1, -12, 0, 36)
-        TabButton.Text = name
-        TabButton.Font = Enum.Font.Gotham
-        TabButton.TextSize = 16
-        TabButton.TextColor3 = Color3.fromRGB(220, 220, 220)
-        TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        TabButton.BorderSizePixel = 0
-        Instance.new("UICorner", TabButton).CornerRadius = UDim.new(0, 8)
-
-        local Page = Instance.new("ScrollingFrame", Pages)
-        Page.Size = UDim2.new(1, 0, 1, 0)
-        Page.ScrollBarThickness = 4
-        Page.CanvasSize = UDim2.fromOffset(0, 0)
-        Page.Visible = false
-        Page.BackgroundTransparency = 1
-
-        local Layout = Instance.new("UIListLayout", Page)
-        Layout.Padding = UDim.new(0, 8)
-        Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            Page.CanvasSize = UDim2.fromOffset(0, Layout.AbsoluteContentSize.Y + 10)
-        end)
-
-        TabButton.MouseButton1Click:Connect(function()
-            for _, t in pairs(Tabs) do
-                t.Page.Visible = false
+    local window = {}
+    function window:CreateTab(name)
+        local tabButton = button(nav, string.upper(name), UDim2.new(), UDim2.fromOffset(0, 51))
+        tabButton.Name = name
+        tabButton.AutomaticSize = Enum.AutomaticSize.X
+        tabButton.BackgroundTransparency = 1
+        tabButton.Font = Enum.Font.Oswald
+        tabButton.TextSize = 19
+        tabButton.LayoutOrder = #tabs + 1
+        create("UIPadding", tabButton, {PaddingLeft = UDim.new(0, 18), PaddingRight = UDim.new(0, 18)})
+        local indicator = create("Frame", tabButton, {
+            Position = UDim2.new(0, 0, 1, -3), Size = UDim2.new(1, 0, 0, 3),
+            BackgroundColor3 = colors.accent, BorderSizePixel = 0, Visible = false,
+        })
+        local page = create("ScrollingFrame", pages, {
+            Name = name, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
+            BorderSizePixel = 0, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            ScrollBarThickness = 3, ScrollBarImageColor3 = colors.accent, Visible = false,
+            ScrollingDirection = Enum.ScrollingDirection.Y,
+        })
+        create("UIPadding", page, {PaddingTop = UDim.new(0, 2), PaddingLeft = UDim.new(0, 2), PaddingRight = UDim.new(0, 10), PaddingBottom = UDim.new(0, 8)})
+        create("UIListLayout", page, {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10)})
+        table.insert(tabs, {page = page, button = tabButton, indicator = indicator})
+        local function select()
+            for _, tab in ipairs(tabs) do
+                local active = tab.page == page
+                tab.page.Visible, tab.indicator.Visible = active, active
+                tab.button.TextColor3 = active and colors.text or colors.muted
+                tab.button.BackgroundTransparency = active and 0 or 1
             end
-            Page.Visible = true
-        end)
-
-        local Components = {}
-
-        function Components:Label(text)
-            local lbl = Instance.new("TextLabel", Page)
-            lbl.Size = UDim2.new(1, -10, 0, 24)
-            lbl.BackgroundTransparency = 1
-            lbl.Text = text
-            lbl.TextWrapped = true
-            lbl.TextXAlignment = Enum.TextXAlignment.Left
-            lbl.Font = Enum.Font.Gotham
-            lbl.TextSize = 15
-            lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+            section.Text = name .. "  /  Make it yours."
         end
+        connect(tabButton.Activated, select)
+        if #tabs == 1 then select() else tabButton.TextColor3 = colors.muted end
 
-        function Components:Button(text, callback)
-            local btn = Instance.new("TextButton", Page)
-            btn.Size = UDim2.new(1, -10, 0, 36)
-            btn.Text = text
-            btn.Font = Enum.Font.Gotham
-            btn.TextSize = 16
-            btn.TextColor3 = Color3.new(1, 1, 1)
-            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            btn.BorderSizePixel = 0
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-            btn.MouseButton1Click:Connect(callback)
+        local components, order = {}, 0
+        local function row(class)
+            order = order + 1
+            local object = create(class, page, {
+                Size = UDim2.new(1, 0, 0, 52), BackgroundColor3 = colors.panel,
+                BorderSizePixel = 0, LayoutOrder = order,
+            })
+            corner(object, 6)
+            outline(object)
+            return object
         end
-
-        function Components:Toggle(text, default, callback)
-            local state = default or false
-            local holder = Instance.new("Frame", Page)
-            holder.Size = UDim2.new(1, -10, 0, 30)
-            holder.BackgroundTransparency = 1
-            local box = Instance.new("TextButton", holder)
-            box.Size = UDim2.fromOffset(22, 22)
-            box.Position = UDim2.fromOffset(0, 4)
-            box.Text = ""
-            box.BorderSizePixel = 0
-            box.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
-            Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
-            local lbl = Instance.new("TextLabel", holder)
-            lbl.Position = UDim2.fromOffset(30, 0)
-            lbl.Size = UDim2.new(1, -30, 1, 0)
-            lbl.BackgroundTransparency = 1
-            lbl.Text = text
-            lbl.Font = Enum.Font.Gotham
-            lbl.TextSize = 16
-            lbl.TextXAlignment = Enum.TextXAlignment.Left
-            lbl.TextColor3 = Color3.new(1, 1, 1)
-            box.MouseButton1Click:Connect(function()
+        function components:Label(value)
+            local label = row("TextLabel")
+            label.Text, label.TextColor3, label.TextSize = value, colors.muted, 13
+            label.Font, label.TextXAlignment = Enum.Font.Gotham, Enum.TextXAlignment.Left
+            label.TextWrapped = true
+            label.AutomaticSize = Enum.AutomaticSize.Y
+            create("UIPadding", label, {PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16), PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12)})
+            return label
+        end
+        function components:Button(value, callback)
+            local control = row("TextButton")
+            control.Text, control.AutoButtonColor = "", true
+            text(control, value, UDim2.fromOffset(16, 0), UDim2.new(1, -90, 1, 0), 14, nil, Enum.Font.GothamBold)
+            local arrow = text(control, ">", UDim2.new(1, -54, 0, 10), UDim2.fromOffset(38, 32), 20, colors.base, Enum.Font.GothamBold)
+            arrow.TextXAlignment, arrow.BackgroundTransparency, arrow.BackgroundColor3 = Enum.TextXAlignment.Center, 0, colors.accent
+            corner(arrow, 4)
+            connect(control.Activated, function() if callback then callback() end end)
+            return control
+        end
+        function components:Toggle(value, default, callback)
+            local state = default == true
+            local control = row("TextButton")
+            control.Text, control.AutoButtonColor = "", true
+            text(control, value, UDim2.fromOffset(16, 0), UDim2.new(1, -150, 1, 0), 14)
+            local status = text(control, state and "ON" or "OFF", UDim2.new(1, -112, 0, 0), UDim2.fromOffset(40, 52), 10, colors.muted, Enum.Font.GothamBold)
+            local track = create("Frame", control, {Position = UDim2.new(1, -64, 0, 14), Size = UDim2.fromOffset(46, 24), BorderSizePixel = 0, BackgroundColor3 = state and colors.accent or colors.border})
+            corner(track, 12)
+            local knob = create("Frame", track, {Position = UDim2.fromOffset(state and 25 or 3, 3), Size = UDim2.fromOffset(18, 18), BackgroundColor3 = colors.text, BorderSizePixel = 0})
+            corner(knob, 9)
+            connect(control.Activated, function()
                 state = not state
-                box.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
+                status.Text = state and "ON" or "OFF"
+                track.BackgroundColor3 = state and colors.accent or colors.border
+                TweenService:Create(knob, TweenInfo.new(0.12), {Position = UDim2.fromOffset(state and 25 or 3, 3)}):Play()
                 if callback then callback(state) end
             end)
+            return control
         end
-
-        Tabs[#Tabs + 1] = {Page = Page}
-        if #Tabs == 1 then
-            Page.Visible = true
-        end
-
-        return Components
+        return components
     end
-
-    function Window:Destroy()
-        ScreenGui:Destroy()
-    end
-
-    Unload.Activated:Connect(function()
-        Window:Destroy()
-    end)
-
-    return Window
+    function window:Destroy() gui:Destroy() end
+    return window
 end
-
 return SentinelUI
