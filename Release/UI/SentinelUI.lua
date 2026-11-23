@@ -35,7 +35,7 @@ local function makeTopBarDraggable(frame, topBar)
         end
     end)
 
-    UserInputService.InputChanged:Connect(function(input)
+    local dragConnection = UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStartPos
             local newPos = UDim2.new(
@@ -46,6 +46,9 @@ local function makeTopBarDraggable(frame, topBar)
             )
             frame.Position = frame.Position:Lerp(newPos, 0.2)
         end
+    end)
+    frame.Destroying:Connect(function()
+        dragConnection:Disconnect()
     end)
 end
 
@@ -81,7 +84,7 @@ function SentinelUI.CreateWindow(toggleKey)
 
     -- Title
     local Title = Instance.new("TextLabel", TopBar)
-    Title.Size = UDim2.new(1, -60, 1, 0)
+    Title.Size = UDim2.new(1, -150, 1, 0)
     Title.Position = UDim2.fromOffset(10, 0)
     Title.BackgroundTransparency = 1
     Title.Text = "Sentinel Hub"
@@ -117,6 +120,17 @@ function SentinelUI.CreateWindow(toggleKey)
     CloseButton.BorderSizePixel = 0
     Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
 
+    local Unload = Instance.new("TextButton", TopBar)
+    Unload.Size = UDim2.fromOffset(80, 30)
+    Unload.Position = UDim2.new(1, -130, 0.5, -15)
+    Unload.Text = "Unload"
+    Unload.Font = Enum.Font.Gotham
+    Unload.TextSize = 14
+    Unload.TextColor3 = Color3.new(1, 1, 1)
+    Unload.BackgroundColor3 = Color3.fromRGB(55, 35, 35)
+    Unload.BorderSizePixel = 0
+    Instance.new("UICorner", Unload).CornerRadius = UDim.new(0, 6)
+
     local expanded = true
     local prevSize = Main.Size
 
@@ -138,10 +152,13 @@ function SentinelUI.CreateWindow(toggleKey)
     end)
 
     -- Toggle visibility with key
-    UserInputService.InputBegan:Connect(function(input, gpe)
+    local toggleConnection = UserInputService.InputBegan:Connect(function(input, gpe)
         if not gpe and input.KeyCode == toggleKey then
             Main.Visible = not Main.Visible
         end
+    end)
+    ScreenGui.Destroying:Connect(function()
+        toggleConnection:Disconnect()
     end)
 
     -- Apply smooth dragging
@@ -247,6 +264,10 @@ function SentinelUI.CreateWindow(toggleKey)
     function Window:Destroy()
         ScreenGui:Destroy()
     end
+
+    Unload.Activated:Connect(function()
+        Window:Destroy()
+    end)
 
     return Window
 end
